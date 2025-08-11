@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Tic-Tac-Toe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Calibri&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Calibri', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            gap: 40px;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .cell {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 10px rgba(155, 89, 182, 0.5); /* Purple glow */
+        }
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px #9b59b6, inset 0 0 15px #9b59b6;
+            transform: scale(1.05);
+        }
+        .cell svg {
+            width: 80px;
+            height: 80px;
+            fill: none;
+            stroke: #9b59b6;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            animation: draw 0.5s ease forwards;
+        }
+        @keyframes draw {
+            from { stroke-dasharray: 1000; stroke-dashoffset: 1000; }
+            to { stroke-dashoffset: 0; }
+        }
+        .x svg path {
+            stroke: #e74c3c; /* Red for X */
+        }
+        .o svg circle {
+            stroke: #9b59b6; /* Purple for O */
+        }
+        .win {
+            background: rgba(155, 89, 182, 0.3) !important;
+            box-shadow: 0 0 30px #9b59b6, inset 0 0 20px #9b59b6 !important;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .status {
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #9b59b6;
+            text-shadow: 0 0 10px #9b59b6;
+            letter-spacing: 2px;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        button {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            box-shadow: 0 0 15px #9b59b6;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #8e44ad;
+            box-shadow: 0 0 25px #8e44ad;
+        }
+        .highscores {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 200px;
+        }
+        .highscores h2 {
+            color: #9b59b6;
+            text-shadow: 0 0 10px #9b59b6;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .highscores ul {
+            list-style: none;
+            padding: 0;
+        }
+        .highscores li {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game">
+            <div class="status">Player X's Turn</div>
+            <div class="game-board"></div>
+            <div class="controls">
+                <button id="reset">Reset Game</button>
+                <button id="autoplay">Toggle Autoplay</button>
+                <button id="reset-scores">Reset Scores</button>
+            </div>
+        </div>
+        <div class="highscores">
+            <h2>Highscores</h2>
+            <ul>
+                <li>X Wins: <span id="x-wins">0</span></li>
+                <li>O Wins: <span id="o-wins">0</span></li>
+                <li>Draws: <span id="draws">0</span></li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        const board = document.querySelector('.game-board');
+        const status = document.querySelector('.status');
+        const resetBtn = document.getElementById('reset');
+        const autoplayBtn = document.getElementById('autoplay');
+        const resetScoresBtn = document.getElementById('reset-scores');
+        const xWinsSpan = document.getElementById('x-wins');
+        const oWinsSpan = document.getElementById('o-wins');
+        const drawsSpan = document.getElementById('draws');
+
+        let gameState = Array(9).fill(null);
+        let currentPlayer = 'X';
+        let isAutoplay = false;
+        let scores = { X: 0, O: 0, Draw: 0 };
+        let winningCombo = null;
+
+        const loadScores = () => {
+            const saved = localStorage.getItem('tttScores');
+            if (saved) scores = JSON.parse(saved);
+            updateScores();
+        };
+
+        const saveScores = () => {
+            localStorage.setItem('tttScores', JSON.stringify(scores));
+        };
+
+        const updateScores = () => {
+            xWinsSpan.textContent = scores.X;
+            oWinsSpan.textContent = scores.O;
+            drawsSpan.textContent = scores.Draw;
+        };
+
+        const createSVG = (type) => {
+            if (type === 'X') {
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 100 100');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', 'M20 20 L80 80 M80 20 L20 80');
+                svg.appendChild(path);
+                svg.classList.add('x');
+                return svg;
+            } else {
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 100 100');
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', '50');
+                circle.setAttribute('cy', '50');
+                circle.setAttribute('r', '40');
+                svg.appendChild(circle);
+                svg.classList.add('o');
+                return svg;
+            }
+        };
+
+        const renderBoard = () => {
+            board.innerHTML = '';
+            gameState.forEach((cell, index) => {
+                const div = document.createElement('div');
+                div.classList.add('cell');
+                if (winningCombo && winningCombo.includes(index)) {
+                    div.classList.add('win');
+                }
+                if (cell) {
+                    div.appendChild(createSVG(cell));
+                }
+                div.addEventListener('click', () => handleClick(index));
+                board.appendChild(div);
+            });
+        };
+
+        const handleClick = (index) => {
+            if (gameState[index] || checkWinner() || gameState.every(c => c)) return;
+            gameState[index] = currentPlayer;
+            renderBoard();
+            const winner = checkWinner();
+            if (winner) {
+                status.textContent = `${currentPlayer} Wins!`;
+                scores[currentPlayer]++;
+                saveScores();
+                updateScores();
+            } else if (gameState.every(c => c)) {
+                status.textContent = `It's a Draw!`;
+                scores.Draw++;
+                saveScores();
+                updateScores();
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `Player ${currentPlayer}'s Turn`;
+                if (isAutoplay && currentPlayer === 'O') {
+                    setTimeout(aiMove, 500); // Add delay for better UX
+                }
+            }
+        };
+
+        const checkWinner = () => {
+            const wins = [
+                [0,1,2], [3,4,5], [6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8], [2,4,6]
+            ];
+            for (let combo of wins) {
+                if (combo.every(i => gameState[i] === currentPlayer)) {
+                    winningCombo = combo;
+                    renderBoard(); // Re-render to apply win class
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        const aiMove = () => {
+            const bestMove = minimax(gameState, 'O').index;
+            handleClick(bestMove);
+        };
+
+        const minimax = (state, player) => {
+            const availSpots = state.reduce((acc, val, idx) => val === null ? acc.concat(idx) : acc, []);
+
+            if (checkWin(state, 'X')) return { score: -10 };
+            if (checkWin(state, 'O')) return { score: 10 };
+            if (availSpots.length === 0) return { score: 0 };
+
+            const moves = [];
+            for (let i = 0; i < availSpots.length; i++) {
+                const move = {};
+                move.index = availSpots[i];
+                state[availSpots[i]] = player;
+
+                if (player === 'O') {
+                    move.score = minimax(state, 'X').score;
+                } else {
+                    move.score = minimax(state, 'O').score;
+                }
+
+                state[availSpots[i]] = null;
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === 'O') {
+                let bestScore = -Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score > bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score < bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            }
+            return moves[bestMove];
+        };
+
+        const checkWin = (state, player) => {
+            const wins = [
+                [0,1,2], [3,4,5], [6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8], [2,4,6]
+            ];
+            return wins.some(combo => combo.every(i => state[i] === player));
+        };
+
+        const resetGame = () => {
+            gameState = Array(9).fill(null);
+            currentPlayer = 'X';
+            winningCombo = null;
+            status.textContent = `Player X's Turn`;
+            renderBoard();
+        };
+
+        const resetScores = () => {
+            scores = { X: 0, O: 0, Draw: 0 };
+            saveScores();
+            updateScores();
+        };
+
+        autoplayBtn.addEventListener('click', () => {
+            isAutoplay = !isAutoplay;
+            autoplayBtn.textContent = isAutoplay ? 'Disable Autoplay' : 'Toggle Autoplay';
+            if (isAutoplay && currentPlayer === 'O' && !checkWinner() && !gameState.every(c => c)) {
+                aiMove();
+            }
+        });
+
+        resetBtn.addEventListener('click', resetGame);
+        resetScoresBtn.addEventListener('click', resetScores);
+
+        loadScores();
+        renderBoard();
+    </script>
+</body>
+</html>
