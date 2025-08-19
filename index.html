@@ -13,46 +13,53 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh; /* Use min-height to avoid overflow */
             margin: 0;
-            overflow: hidden;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
         }
         .container {
             display: flex;
-            gap: 40px;
+            flex-direction: column; /* Stack game and highscores vertically on mobile */
+            align-items: center;
+            gap: 20px; /* Reduced gap for smaller screens */
+            width: 100%;
+            max-width: 600px; /* Cap width for larger screens */
+            padding: 10px; /* Add padding to prevent edge touching */
+            box-sizing: border-box;
         }
         .game-board {
             display: grid;
-            grid-template-columns: repeat(3, 120px);
-            grid-template-rows: repeat(3, 120px);
-            gap: 10px;
+            grid-template-columns: repeat(3, 1fr); /* Use fr for equal columns */
+            grid-template-rows: repeat(3, 1fr); /* Use fr for equal rows */
+            gap: 8px; /* Slightly smaller gap for mobile */
             background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 15px;
+            padding: 15px; /* Reduced padding */
+            border-radius: 10px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 100%; /* Full width of container */
+            max-width: 360px; /* Cap board size */
+            aspect-ratio: 1 / 1; /* Keep board square */
         }
         .cell {
-            width: 120px;
-            height: 120px;
+            width: 100%;
+            height: 0; /* Use padding-bottom to maintain aspect ratio */
+            padding-bottom: 100%; /* Makes cell square relative to width */
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: inset 0 0 10px rgba(155, 89, 182, 0.5); /* Purple glow */
-        }
-        .cell:hover {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 0 20px #9b59b6, inset 0 0 15px #9b59b6;
-            transform: scale(1.05);
+            box-shadow: inset 0 0 8px rgba(155, 89, 182, 0.5);
+            position: relative; /* For absolute positioning of SVG */
         }
         .cell svg {
-            width: 80px;
-            height: 80px;
+            position: absolute;
+            width: 70%; /* Relative to cell size */
+            height: 70%;
             fill: none;
             stroke: #9b59b6;
             stroke-width: 8;
@@ -60,79 +67,99 @@
             stroke-linejoin: round;
             animation: draw 0.5s ease forwards;
         }
-        @keyframes draw {
-            from { stroke-dasharray: 1000; stroke-dashoffset: 1000; }
-            to { stroke-dashoffset: 0; }
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px #9b59b6, inset 0 0 10px #9b59b6;
+            transform: scale(1.03); /* Slightly reduced scale for mobile */
         }
         .x svg path {
-            stroke: #e74c3c; /* Red for X */
+            stroke: #e74c3c;
         }
         .o svg circle {
-            stroke: #9b59b6; /* Purple for O */
+            stroke: #9b59b6;
         }
         .win {
             background: rgba(155, 89, 182, 0.3) !important;
-            box-shadow: 0 0 30px #9b59b6, inset 0 0 20px #9b59b6 !important;
+            box-shadow: 0 0 20px #9b59b6, inset 0 0 15px #9b59b6 !important;
             animation: pulse 1s infinite;
         }
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
         .status {
             text-align: center;
-            font-size: 20px;
-            margin-bottom: 20px;
+            font-size: clamp(16px, 5vw, 18px); /* Responsive font size */
+            margin-bottom: 15px;
             color: #9b59b6;
-            text-shadow: 0 0 10px #9b59b6;
-            letter-spacing: 2px;
+            text-shadow: 0 0 8px #9b59b6;
+            letter-spacing: 1.5px;
         }
         .controls {
-            text-align: center;
-            margin-top: 20px;
             display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
             justify-content: center;
-            gap: 10px;
+            gap: 8px; /* Reduced gap */
+            margin-top: 15px;
+            width: 100%;
         }
         button {
             background: #9b59b6;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 8px 16px; /* Slightly smaller padding */
             border-radius: 5px;
             cursor: pointer;
-            font-family: 'Press Start 2P', cursive;
-            font-size: 12px;
-            box-shadow: 0 0 15px #9b59b6;
+            font-family: 'Calibri', sans-serif; /* Fallback font for consistency */
+            font-size: clamp(10px, 3vw, 12px); /* Responsive font size */
+            box-shadow: 0 0 10px #9b59b6;
             transition: all 0.3s;
+            flex: 1; /* Buttons take equal space */
+            max-width: 150px; /* Prevent buttons from getting too wide */
         }
         button:hover {
             background: #8e44ad;
-            box-shadow: 0 0 25px #8e44ad;
+            box-shadow: 0 0 15px #8e44ad;
         }
         .highscores {
             background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 15px;
+            padding: 15px;
+            border-radius: 10px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            width: 200px;
+            width: 100%;
+            max-width: 360px; /* Match game board width */
+            box-sizing: border-box;
         }
         .highscores h2 {
             color: #9b59b6;
-            text-shadow: 0 0 10px #9b59b6;
-            margin-bottom: 10px;
-            font-size: 16px;
+            text-shadow: 0 0 8px #9b59b6;
+            margin-bottom: 8px;
+            font-size: clamp(14px, 4vw, 16px); /* Responsive font size */
         }
         .highscores ul {
             list-style: none;
             padding: 0;
         }
         .highscores li {
-            margin: 5px 0;
-            font-size: 12px;
+            margin: 4px 0;
+            font-size: clamp(10px, 3vw, 12px); /* Responsive font size */
+        }
+
+        /* Media query for larger screens */
+        @media (min-width: 768px) {
+            .container {
+                flex-direction: row; /* Side-by-side layout for larger screens */
+                gap: 40px;
+            }
+            .game-board {
+                max-width: 450px; /* Slightly larger board on tablets/desktops */
+            }
+            .highscores {
+                max-width: 200px;
+            }
         }
     </style>
 </head>
@@ -157,6 +184,7 @@
         </div>
     </div>
     <script>
+        // JavaScript remains unchanged as it’s functionally sound for mobile
         const board = document.querySelector('.game-board');
         const status = document.querySelector('.status');
         const resetBtn = document.getElementById('reset');
@@ -245,7 +273,7 @@
                 currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
                 status.textContent = `Player ${currentPlayer}'s Turn`;
                 if (isAutoplay && currentPlayer === 'O') {
-                    setTimeout(aiMove, 500); // Add delay for better UX
+                    setTimeout(aiMove, 500);
                 }
             }
         };
@@ -259,7 +287,7 @@
             for (let combo of wins) {
                 if (combo.every(i => gameState[i] === currentPlayer)) {
                     winningCombo = combo;
-                    renderBoard(); // Re-render to apply win class
+                    renderBoard();
                     return true;
                 }
             }
