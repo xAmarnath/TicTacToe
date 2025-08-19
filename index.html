@@ -6,156 +6,187 @@
     <title>Neon Tic-Tac-Toe</title>
     <link href="https://fonts.googleapis.com/css2?family=Calibri&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Calibri', sans-serif;
             background-color: #121212;
             color: #ffffff;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            min-height: 100vh; /* Use min-height to avoid overflow */
-            margin: 0;
-            overflow-x: hidden; /* Prevent horizontal scrolling */
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px;
+            overflow-x: hidden;
         }
+
         .container {
             display: flex;
-            flex-direction: column; /* Stack game and highscores vertically on mobile */
+            flex-direction: column;
             align-items: center;
-            gap: 20px; /* Reduced gap for smaller screens */
             width: 100%;
-            max-width: 600px; /* Cap width for larger screens */
-            padding: 10px; /* Add padding to prevent edge touching */
-            box-sizing: border-box;
+            max-width: 500px; /* Cap width for larger screens */
+            gap: 20px;
         }
+
+        .game {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status {
+            font-size: clamp(16px, 5vw, 20px);
+            color: #9b59b6;
+            text-shadow: 0 0 8px #9b59b6;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
         .game-board {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* Use fr for equal columns */
-            grid-template-rows: repeat(3, 1fr); /* Use fr for equal rows */
-            gap: 8px; /* Slightly smaller gap for mobile */
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px; /* Reduced padding */
-            border-radius: 10px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            width: 100%; /* Full width of container */
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
             max-width: 360px; /* Cap board size */
             aspect-ratio: 1 / 1; /* Keep board square */
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         .cell {
+            position: relative;
             width: 100%;
-            height: 0; /* Use padding-bottom to maintain aspect ratio */
-            padding-bottom: 100%; /* Makes cell square relative to width */
+            padding-bottom: 100%; /* Square cells */
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: inset 0 0 8px rgba(155, 89, 182, 0.5);
-            position: relative; /* For absolute positioning of SVG */
+            box-shadow: inset 0 0 6px rgba(155, 89, 182, 0.4);
         }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 12px #9b59b6;
+            transform: scale(1.02);
+        }
+
         .cell svg {
             position: absolute;
-            width: 70%; /* Relative to cell size */
-            height: 70%;
+            width: 65%;
+            height: 65%;
             fill: none;
-            stroke: #9b59b6;
-            stroke-width: 8;
+            stroke-width: 6;
             stroke-linecap: round;
             stroke-linejoin: round;
-            animation: draw 0.5s ease forwards;
+            animation: draw 0.4s ease forwards;
         }
-        .cell:hover {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 0 15px #9b59b6, inset 0 0 10px #9b59b6;
-            transform: scale(1.03); /* Slightly reduced scale for mobile */
-        }
+
         .x svg path {
-            stroke: #e74c3c;
+            stroke: #e74c3c; /* Red for X */
         }
+
         .o svg circle {
-            stroke: #9b59b6;
+            stroke: #9b59b6; /* Purple for O */
         }
+
         .win {
-            background: rgba(155, 89, 182, 0.3) !important;
-            box-shadow: 0 0 20px #9b59b6, inset 0 0 15px #9b59b6 !important;
-            animation: pulse 1s infinite;
+            background: rgba(155, 89, 182, 0.25) !important;
+            box-shadow: 0 0 16px #9b59b6, inset 0 0 12px #9b59b6 !important;
+            animation: pulse 0.8s infinite;
         }
+
+        @keyframes draw {
+            from { stroke-dasharray: 1000; stroke-dashoffset: 1000; }
+            to { stroke-dashoffset: 0; }
+        }
+
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
+            50% { transform: scale(1.02); }
             100% { transform: scale(1); }
         }
-        .status {
-            text-align: center;
-            font-size: clamp(16px, 5vw, 18px); /* Responsive font size */
-            margin-bottom: 15px;
-            color: #9b59b6;
-            text-shadow: 0 0 8px #9b59b6;
-            letter-spacing: 1.5px;
-        }
+
         .controls {
             display: flex;
-            flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 8px; /* Reduced gap */
-            margin-top: 15px;
+            gap: 10px;
             width: 100%;
         }
+
         button {
             background: #9b59b6;
-            color: white;
+            color: #ffffff;
             border: none;
-            padding: 8px 16px; /* Slightly smaller padding */
-            border-radius: 5px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: clamp(12px, 3.5vw, 14px);
             cursor: pointer;
-            font-family: 'Calibri', sans-serif; /* Fallback font for consistency */
-            font-size: clamp(10px, 3vw, 12px); /* Responsive font size */
             box-shadow: 0 0 10px #9b59b6;
-            transition: all 0.3s;
-            flex: 1; /* Buttons take equal space */
-            max-width: 150px; /* Prevent buttons from getting too wide */
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 140px;
         }
+
         button:hover {
-            background: #8e44ad;
-            box-shadow: 0 0 15px #8e44ad;
+            background: #7e3e9b;
+            box-shadow: 0 0 14px #7e3e9b;
         }
+
         .highscores {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
             width: 100%;
-            max-width: 360px; /* Match game board width */
-            box-sizing: border-box;
+            max-width: 360px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
         }
+
         .highscores h2 {
+            font-size: clamp(14px, 4vw, 18px);
             color: #9b59b6;
             text-shadow: 0 0 8px #9b59b6;
-            margin-bottom: 8px;
-            font-size: clamp(14px, 4vw, 16px); /* Responsive font size */
+            margin-bottom: 10px;
         }
+
         .highscores ul {
             list-style: none;
             padding: 0;
         }
+
         .highscores li {
-            margin: 4px 0;
-            font-size: clamp(10px, 3vw, 12px); /* Responsive font size */
+            font-size: clamp(12px, 3.5vw, 14px);
+            margin: 6px 0;
         }
 
-        /* Media query for larger screens */
+        /* Tablet and Desktop */
         @media (min-width: 768px) {
             .container {
-                flex-direction: row; /* Side-by-side layout for larger screens */
-                gap: 40px;
+                flex-direction: row;
+                justify-content: center;
+                gap: 30px;
             }
             .game-board {
-                max-width: 450px; /* Slightly larger board on tablets/desktops */
+                max-width: 400px;
             }
             .highscores {
                 max-width: 200px;
@@ -184,7 +215,6 @@
         </div>
     </div>
     <script>
-        // JavaScript remains unchanged as it’s functionally sound for mobile
         const board = document.querySelector('.game-board');
         const status = document.querySelector('.status');
         const resetBtn = document.getElementById('reset');
@@ -217,25 +247,22 @@
         };
 
         const createSVG = (type) => {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 100 100');
             if (type === 'X') {
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('viewBox', '0 0 100 100');
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', 'M20 20 L80 80 M80 20 L20 80');
                 svg.appendChild(path);
                 svg.classList.add('x');
-                return svg;
             } else {
-                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('viewBox', '0 0 100 100');
                 const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                 circle.setAttribute('cx', '50');
                 circle.setAttribute('cy', '50');
                 circle.setAttribute('r', '40');
                 svg.appendChild(circle);
                 svg.classList.add('o');
-                return svg;
             }
+            return svg;
         };
 
         const renderBoard = () => {
@@ -273,16 +300,16 @@
                 currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
                 status.textContent = `Player ${currentPlayer}'s Turn`;
                 if (isAutoplay && currentPlayer === 'O') {
-                    setTimeout(aiMove, 500);
+                    setTimeout(aiMove, 300); // Reduced delay for smoother UX
                 }
             }
         };
 
         const checkWinner = () => {
             const wins = [
-                [0,1,2], [3,4,5], [6,7,8],
-                [0,3,6], [1,4,7], [2,5,8],
-                [0,4,8], [2,4,6]
+                [0,1,2], [3,4,5], [6,7,8], // Rows
+                [0,3,6], [1,4,7], [2,5,8], // Columns
+                [0,4,8], [2,4,6] // Diagonals
             ];
             for (let combo of wins) {
                 if (combo.every(i => gameState[i] === currentPlayer)) {
@@ -311,13 +338,7 @@
                 const move = {};
                 move.index = availSpots[i];
                 state[availSpots[i]] = player;
-
-                if (player === 'O') {
-                    move.score = minimax(state, 'X').score;
-                } else {
-                    move.score = minimax(state, 'O').score;
-                }
-
+                move.score = player === 'O' ? minimax(state, 'X').score : minimax(state, 'O').score;
                 state[availSpots[i]] = null;
                 moves.push(move);
             }
