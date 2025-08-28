@@ -18,11 +18,20 @@
         #game-container {
             text-align: center;
         }
+        h1 {
+            text-shadow: 0 0 10px #fff;
+            margin-bottom: 10px;
+        }
+        #status {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            text-shadow: 0 0 5px #fff;
+        }
         #board {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            max-width: 90vmin;
-            aspect-ratio: 1 / 1;
+            width: 90vmin;
+            height: 90vmin;
             margin: 0 auto;
             box-shadow: 0 0 20px #fff;
         }
@@ -54,11 +63,17 @@
             padding: 10px 20px;
             cursor: pointer;
             box-shadow: 0 0 10px #fff;
+            transition: box-shadow 0.3s;
+        }
+        #reset:hover {
+            box-shadow: 0 0 20px #fff;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
+        <h1>Tic-Tac-Toe</h1>
+        <div id="status">Player X's turn</div>
         <div id="board">
             <div class="cell"><canvas></canvas></div>
             <div class="cell"><canvas></canvas></div>
@@ -75,17 +90,12 @@
     <script>
         const cells = document.querySelectorAll('.cell');
         const canvases = document.querySelectorAll('canvas');
+        const statusEl = document.getElementById('status');
         let board = Array(9).fill(null);
         let currentPlayer = 'X';
         let gameOver = false;
 
-        function drawSymbol(index) {
-            const canvas = canvases[index];
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-            const size = canvas.width;
-
+        function drawPartial(ctx, size, symbol, progress) {
             ctx.clearRect(0, 0, size, size);
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = size / 10;
@@ -93,18 +103,57 @@
             ctx.shadowColor = '#fff';
             ctx.shadowBlur = size / 20;
 
-            if (currentPlayer === 'X') {
-                ctx.beginPath();
-                ctx.moveTo(size * 0.2, size * 0.2);
-                ctx.lineTo(size * 0.8, size * 0.8);
-                ctx.moveTo(size * 0.8, size * 0.2);
-                ctx.lineTo(size * 0.2, size * 0.8);
-                ctx.stroke();
+            ctx.beginPath();
+            if (symbol === 'X') {
+                if (progress <= 0.5) {
+                    const p = progress * 2;
+                    ctx.moveTo(size * 0.2, size * 0.2);
+                    ctx.lineTo(size * 0.2 + size * 0.6 * p, size * 0.2 + size * 0.6 * p);
+                } else {
+                    ctx.moveTo(size * 0.2, size * 0.2);
+                    ctx.lineTo(size * 0.8, size * 0.8);
+                    const p = (progress - 0.5) * 2;
+                    ctx.moveTo(size * 0.8, size * 0.2);
+                    ctx.lineTo(size * 0.8 - size * 0.6 * p, size * 0.2 + size * 0.6 * p);
+                }
             } else {
-                ctx.beginPath();
-                ctx.arc(size / 2, size / 2, size * 0.3, 0, Math.PI * 2);
-                ctx.stroke();
+                ctx.arc(size / 2, size / 2, size * 0.3, 0, Math.PI * 2 * progress);
             }
+            ctx.stroke();
+        }
+
+        function drawSymbol(index, symbol) {
+            const canvas = canvases[index];
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            const size = canvas.width;
+            const duration = 500;
+            let start = null;
+
+            function animate(timestamp) {
+                if (!start) start = timestamp;
+                let progress = (timestamp - start) / duration;
+                if (progress > 1) progress = 1;
+                drawPartial(ctx, size, symbol, progress);
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function redrawAll() {
+            board.forEach((symbol, index) => {
+                if (symbol) {
+                    const canvas = canvases[index];
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = canvas.clientWidth;
+                    canvas.height = canvas.clientHeight;
+                    const size = canvas.width;
+                    drawPartial(ctx, size, symbol, 1);
+                }
+            });
         }
 
         function checkWin() {
@@ -116,21 +165,27 @@
             return wins.some(combo => combo.every(i => board[i] === currentPlayer));
         }
 
+        function updateStatus() {
+            if (gameOver) return;
+            statusEl.textContent = `Player ${currentPlayer}'s turn`;
+        }
+
         function handleClick(index) {
             if (gameOver || board[index]) return;
             board[index] = currentPlayer;
-            drawSymbol(index);
+            drawSymbol(index, currentPlayer);
             if (checkWin()) {
-                alert(`${currentPlayer} wins!`);
+                statusEl.textContent = `Player ${currentPlayer} wins!`;
                 gameOver = true;
                 return;
             }
             if (board.every(cell => cell !== null)) {
-                alert('Draw!');
+                statusEl.textContent = `It's a draw!`;
                 gameOver = true;
                 return;
             }
             currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateStatus();
         }
 
         cells.forEach((cell, index) => {
@@ -145,7 +200,12 @@
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             });
+            updateStatus();
         });
+
+        window.addEventListener('resize', redrawAll);
+
+        // Initial draw if needed, but not
     </script>
 </body>
 </html>
